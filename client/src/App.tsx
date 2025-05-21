@@ -17,6 +17,7 @@ function App() {
     eval: string;
     depth: number;
     bestLine: string;
+    bestMove: string;
   } | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
@@ -171,6 +172,7 @@ function App() {
         eval: data.evaluation,
         depth: 20, // hardcoded for now
         bestLine: data.bestLine?.join(" ") || "",
+        bestMove: data.bestMove || "",
       });
       setIsAnalyzing(false);
       return data;
@@ -219,7 +221,7 @@ function App() {
     let bestMove = "";
     let evaluation = "";
     if (evalInfo) {
-      bestMove = evalInfo.bestLine.split(" ")[0] || "";
+      bestMove = evalInfo.bestMove || "";
       evaluation = evalInfo.eval;
     }
     try {
@@ -234,9 +236,13 @@ function App() {
         }),
       });
       const data = await response.json();
-      setExplanation(data.explanation);
+      setExplanation(data);
     } catch (error) {
-      setExplanation("Failed to get explanation.");
+      setExplanation({
+        summary: "Failed to get explanation.",
+        playerMoveAnalysis: [],
+        stockfishMoveAnalysis: [],
+      });
     }
     setIsExplaining(false);
   };
@@ -438,9 +444,11 @@ function App() {
                 {isExplaining ? "Explaining..." : "Explain Current Move"}
               </button>
             </div>
-            {/* Best line and depth */}
+            {/* Best move, line, and depth */}
             {evalInfo && (
               <div className="mb-2 text-gray-200 text-sm">
+                <span className="font-semibold">Best move:</span>{" "}
+                {evalInfo.bestMove} &nbsp;|&nbsp;
                 <span className="font-semibold">Depth:</span> {evalInfo.depth}{" "}
                 &nbsp;|&nbsp;
                 <span className="font-semibold">Best line:</span>{" "}
@@ -453,7 +461,50 @@ function App() {
             {explanation && (
               <div className="mt-4 bg-yellow-100 border-l-4 border-yellow-400 p-4 rounded text-gray-900">
                 <div className="font-semibold mb-1">Explanation:</div>
-                <div>{explanation}</div>
+                {typeof explanation === "string" ? (
+                  <div>{explanation}</div>
+                ) : (
+                  <>
+                    {explanation.summary && (
+                      <div className="mb-2 font-semibold">
+                        {explanation.summary}
+                      </div>
+                    )}
+                    {explanation.playerMoveAnalysis &&
+                      explanation.playerMoveAnalysis.length > 0 && (
+                        <div className="mb-2">
+                          <div className="font-semibold">Player's Move:</div>
+                          <ul className="list-disc list-inside ml-4">
+                            {explanation.playerMoveAnalysis.map(
+                              (item: string, idx: number) => (
+                                <li key={idx}>{item}</li>
+                              )
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    {explanation.stockfishMoveAnalysis &&
+                      explanation.stockfishMoveAnalysis.length > 0 && (
+                        <div>
+                          <div className="font-semibold">
+                            Stockfish's Best Move:
+                          </div>
+                          <ul className="list-disc list-inside ml-4">
+                            {explanation.stockfishMoveAnalysis.map(
+                              (item: string, idx: number) => (
+                                <li key={idx}>{item}</li>
+                              )
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    {explanation.raw && (
+                      <div className="mt-2 text-xs text-gray-500">
+                        Raw: {explanation.raw}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>

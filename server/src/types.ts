@@ -5,6 +5,7 @@ export interface AnalysisRequest {
 export interface AnalysisResponse {
   evaluation: string;
   bestLine: string[];
+  bestMove: string;
 }
 
 export interface ExplanationRequest {

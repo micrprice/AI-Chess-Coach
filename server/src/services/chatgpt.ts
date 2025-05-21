@@ -10,7 +10,7 @@ export class ChatGPTService {
     });
   }
 
-  async getMoveExplanation(request: ExplanationRequest): Promise<string> {
+  async getMoveExplanation(request: ExplanationRequest): Promise<any> {
     const prompt = this.buildPrompt(request);
 
     try {
@@ -33,7 +33,16 @@ export class ChatGPTService {
       // Log the full response for debugging
       console.log('ChatGPT API response:', JSON.stringify(response, null, 2));
 
-      return response.choices[0].message.content || 'No explanation available';
+      const content = response.choices[0].message.content || '';
+      try {
+        // Try to parse the JSON response
+        const parsed = JSON.parse(content);
+        return parsed;
+      } catch (err) {
+        // If parsing fails, return the raw content as a fallback
+        console.warn('Failed to parse ChatGPT JSON response:', content);
+        return { summary: 'No explanation available', playerMoveAnalysis: [], stockfishMoveAnalysis: [], raw: content };
+      }
     } catch (error) {
       console.error('Error getting move explanation:', error);
       throw error;
@@ -41,16 +50,26 @@ export class ChatGPTService {
   }
 
   private buildPrompt(request: ExplanationRequest): string {
-    return `Analyze this chess position and moves:
+    return `You are a chess grandmaster and coach. Analyze the following position and moves:
 
 Position (FEN): ${request.fen}
 Player's move: ${request.userMove}
 Stockfish's best move: ${request.bestMove}
-Evaluation: ${request.evaluation}
+Stockfish evaluation: ${request.evaluation}
 
-Please explain:
-1. Why the player's move was good or bad
-2. Why Stockfish recommends the best move instead
-Keep the explanation clear and concise.`;
+Please respond in the following JSON format:
+{
+  "summary": "One concise sentence summarizing the move quality.",
+  "playerMoveAnalysis": [
+    "Short bullet point explaining why the player's move is good or bad.",
+    "Another bullet point if relevant."
+  ],
+  "stockfishMoveAnalysis": [
+    "Short bullet point explaining why Stockfish's move is preferred.",
+    "Another bullet point if relevant."
+  ]
+}
+
+Do not include any text outside the JSON object.`;
   }
 } 

@@ -4,12 +4,14 @@ export interface Move {
   black?: string;
   evaluation?: string;
   bestLine?: string[];
+  bestMove?: string;
   explanation?: string;
 }
 
 export interface AnalysisResponse {
   evaluation: string;
   bestLine: string[];
+  bestMove: string;
 }
 
 export interface ExplanationResponse {

@@ -49,7 +49,7 @@ app.post('/api/explain', async (req, res) => {
     }
 
     const explanation = await chatgptService.getMoveExplanation(request);
-    res.json({ explanation });
+    res.json(explanation);
   } catch (error) {
     console.error('Error in /api/explain:', error);
     res.status(500).json({ error: 'Failed to get move explanation' });

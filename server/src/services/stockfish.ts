@@ -25,7 +25,7 @@ export class StockfishService {
     }
   }
 
-  async analyzePosition(fen: string): Promise<{ evaluation: string; bestLine: string[] }> {
+  async analyzePosition(fen: string): Promise<{ evaluation: string; bestLine: string[]; bestMove: string }> {
     if (!this.isReady) {
       throw new Error('Stockfish engine is not ready');
     }
@@ -42,10 +42,12 @@ export class StockfishService {
         : {};
       const evaluation = this.formatEvaluation(bestInfo.score);
       const bestLine = bestInfo.pv ? bestInfo.pv.split(' ') : [];
+      const bestMove = result.bestmove || '';
 
       return {
         evaluation,
-        bestLine
+        bestLine,
+        bestMove
       };
     } catch (error) {
       console.error('Error analyzing position:', error);
