@@ -341,7 +341,7 @@ function App() {
       {/* Main Grid */}
       <div className="container mx-auto px-4 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center min-h-[600px]">
-          {/* Left: Chessboard and navigation */}
+          {/* Left: Chessboard, navigation, and explanation */}
           <div className="flex flex-col justify-center items-center h-full">
             <div className="bg-gray-700 rounded-lg shadow-lg p-4 border border-gray-500">
               <Chessboard
@@ -390,6 +390,66 @@ function App() {
                 Reset
               </button>
             </div>
+            {/* Explanation Output (moved here, below navigation) */}
+            {explanation && (
+              <div
+                className="mt-6 w-full max-w-xl mx-auto bg-gray-100 text-gray-900 rounded shadow border border-gray-300 p-4 relative animate-fadein"
+                style={{ minHeight: 0 }}
+              >
+                <button
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold focus:outline-none"
+                  onClick={() => setExplanation(null)}
+                  aria-label="Close explanation"
+                >
+                  ×
+                </button>
+                <div className="font-bold mb-2">Explanation:</div>
+                {typeof explanation === "string" ? (
+                  <div>{explanation}</div>
+                ) : (
+                  <>
+                    {explanation.summary && (
+                      <div className="mb-2 font-semibold">
+                        {explanation.summary}
+                      </div>
+                    )}
+                    {explanation.playerMoveAnalysis &&
+                      explanation.playerMoveAnalysis.length > 0 && (
+                        <div className="mb-2">
+                          <div className="font-semibold">Player's Move:</div>
+                          <ul className="list-disc list-inside ml-4">
+                            {explanation.playerMoveAnalysis.map(
+                              (item: string, idx: number) => (
+                                <li key={idx}>{item}</li>
+                              )
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    {explanation.stockfishMoveAnalysis &&
+                      explanation.stockfishMoveAnalysis.length > 0 && (
+                        <div>
+                          <div className="font-semibold">
+                            Stockfish's Best Move:
+                          </div>
+                          <ul className="list-disc list-inside ml-4">
+                            {explanation.stockfishMoveAnalysis.map(
+                              (item: string, idx: number) => (
+                                <li key={idx}>{item}</li>
+                              )
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    {explanation.raw && (
+                      <div className="mt-2 text-xs text-gray-500">
+                        Raw: {explanation.raw}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
           {/* Right: All controls except navigation/flip/reset */}
           <div className="flex flex-col gap-4 justify-center">
@@ -457,56 +517,6 @@ function App() {
             )}
             {/* Move List */}
             {moveList}
-            {/* Explanation Output */}
-            {explanation && (
-              <div className="mt-4 bg-yellow-100 border-l-4 border-yellow-400 p-4 rounded text-gray-900">
-                <div className="font-semibold mb-1">Explanation:</div>
-                {typeof explanation === "string" ? (
-                  <div>{explanation}</div>
-                ) : (
-                  <>
-                    {explanation.summary && (
-                      <div className="mb-2 font-semibold">
-                        {explanation.summary}
-                      </div>
-                    )}
-                    {explanation.playerMoveAnalysis &&
-                      explanation.playerMoveAnalysis.length > 0 && (
-                        <div className="mb-2">
-                          <div className="font-semibold">Player's Move:</div>
-                          <ul className="list-disc list-inside ml-4">
-                            {explanation.playerMoveAnalysis.map(
-                              (item: string, idx: number) => (
-                                <li key={idx}>{item}</li>
-                              )
-                            )}
-                          </ul>
-                        </div>
-                      )}
-                    {explanation.stockfishMoveAnalysis &&
-                      explanation.stockfishMoveAnalysis.length > 0 && (
-                        <div>
-                          <div className="font-semibold">
-                            Stockfish's Best Move:
-                          </div>
-                          <ul className="list-disc list-inside ml-4">
-                            {explanation.stockfishMoveAnalysis.map(
-                              (item: string, idx: number) => (
-                                <li key={idx}>{item}</li>
-                              )
-                            )}
-                          </ul>
-                        </div>
-                      )}
-                    {explanation.raw && (
-                      <div className="mt-2 text-xs text-gray-500">
-                        Raw: {explanation.raw}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -4,22 +4,32 @@ A full-stack web application that provides chess game analysis using Stockfish a
 
 ## Features
 
-- Interactive chessboard display
-- PGN file upload and parsing
-- Stockfish analysis with evaluation scores
-- ChatGPT-powered move explanations
-- Best line suggestions
-- Move-by-move analysis
+- Interactive chessboard display with move navigation
+- PGN paste/upload support
+- FEN position import
+- Stockfish analysis with:
+  - Evaluation scores
+  - Best move suggestions
+  - Best line variations
+  - Automatic analysis on position change
+- ChatGPT-powered move explanations with:
+  - Move summary
+  - Player's move analysis
+  - Stockfish's best move analysis
+- Interactive move list with clickable moves
+- Board navigation controls (start, back, forward, end)
+- Board flip and reset functionality
+- Dark mode UI with modern styling
 
 ## Tech Stack
 
 ### Frontend
 
 - React with TypeScript
+- Vite for build tooling
 - react-chessboard for the chess interface
 - chess.js for move validation and PGN parsing
 - Tailwind CSS for styling
-- shadcn/ui for UI components
 
 ### Backend
 
@@ -33,10 +43,14 @@ A full-stack web application that provides chess game analysis using Stockfish a
 .
 ├── client/             # React frontend
 │   ├── src/
+│   │   ├── App.tsx    # Main application component
+│   │   └── types.ts   # TypeScript type definitions
 │   ├── public/
 │   └── package.json
 └── server/             # Node.js backend
     ├── src/
+    │   ├── index.ts   # Express server setup
+    │   └── stockfish.ts # Stockfish integration
     └── package.json
 ```
 
@@ -87,6 +101,16 @@ Request body:
 }
 ```
 
+Response:
+
+```json
+{
+  "evaluation": "+0.5",
+  "bestLine": ["e2e4", "e7e5", "g1f3"],
+  "bestMove": "e2e4"
+}
+```
+
 ### POST /api/explain
 
 Gets a ChatGPT explanation for a move.
@@ -102,6 +126,28 @@ Request body:
 }
 ```
 
-## License
+Response:
 
-MIT
+```json
+{
+  "summary": "White plays e4, establishing central control...",
+  "playerMoveAnalysis": [
+    "Controls the center",
+    "Develops the king's pawn",
+    "Prepares for castling"
+  ],
+  "stockfishMoveAnalysis": [
+    "Best move in the position",
+    "Maintains equality",
+    "Follows opening principles"
+  ]
+}
+```
+
+## Development Notes
+
+- The application uses a two-column layout with the chessboard on the left and controls/analysis on the right
+- Stockfish analysis is automatically triggered when navigating moves or importing PGN
+- Move explanations are displayed in a collapsible panel below the chessboard
+- The move list is displayed as a table with clickable moves for easy navigation
+- All state is managed using React hooks for efficient updates
