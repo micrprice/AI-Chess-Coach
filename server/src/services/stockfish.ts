@@ -34,8 +34,14 @@ export class StockfishService {
       await this.engine.position(fen);
       const result = await this.engine.go({ depth: 20 });
       
-      const evaluation = this.formatEvaluation(result.score);
-      const bestLine = result.pv || [];
+      console.log('Stockfish result:', result);
+      
+      // Find the info with the highest depth
+      const bestInfo = Array.isArray(result.info)
+        ? result.info.reduce((a, b) => (b.depth > (a.depth || 0) ? b : a), {})
+        : {};
+      const evaluation = this.formatEvaluation(bestInfo.score);
+      const bestLine = bestInfo.pv ? bestInfo.pv.split(' ') : [];
 
       return {
         evaluation,
@@ -47,10 +53,22 @@ export class StockfishService {
     }
   }
 
-  private formatEvaluation(score: number): string {
-    // Convert centipawns to a more readable format
-    const value = score / 100;
-    return value >= 0 ? `+${value.toFixed(2)}` : value.toFixed(2);
+  private formatEvaluation(score: any): string {
+    if (!score) return 'N/A';
+    if (typeof score === 'object' && 'value' in score) {
+      if (score.unit === 'cp') {
+        const value = score.value / 100;
+        return value >= 0 ? `+${value.toFixed(2)}` : value.toFixed(2);
+      }
+      if (score.unit === 'mate') {
+        return `#${score.value}`;
+      }
+    }
+    if (typeof score === 'number') {
+      const value = score / 100;
+      return value >= 0 ? `+${value.toFixed(2)}` : value.toFixed(2);
+    }
+    return 'N/A';
   }
 
   async quit() {
