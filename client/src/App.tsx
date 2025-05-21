@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { GameState, Move } from "./types";
@@ -22,6 +22,7 @@ function App() {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
   const [ply, setPly] = useState(-1); // ply: -1 = start, 0 = first white move, 1 = first black move, etc.
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // --- PGN Paste Import ---
   const importPGN = () => {
@@ -46,6 +47,11 @@ function App() {
       });
       setPly(-1);
       setExplanation(null);
+      setEvalInfo(null);
+      // Analyze the first move if available
+      setTimeout(() => {
+        if (moves.length > 0) setPly(0);
+      }, 0);
     } catch (error) {
       alert("Invalid PGN");
     }
@@ -64,6 +70,7 @@ function App() {
       });
       setPly(-1);
       setExplanation(null);
+      setEvalInfo(null);
     } catch {
       alert("Invalid FEN");
     }
@@ -80,6 +87,7 @@ function App() {
     }));
     setPly(-1);
     setExplanation(null);
+    setEvalInfo(null);
   };
   const goBack = () => {
     if (ply > -1) {
@@ -90,6 +98,7 @@ function App() {
       setGameState((prev) => ({ ...prev, currentPosition: newGame.fen() }));
       setPly(ply - 1);
       setExplanation(null);
+      setEvalInfo(null);
     }
   };
   const goForward = () => {
@@ -102,6 +111,7 @@ function App() {
       setGameState((prev) => ({ ...prev, currentPosition: newGame.fen() }));
       setPly(ply + 1);
       setExplanation(null);
+      setEvalInfo(null);
     }
   };
   const goToEnd = () => {
@@ -112,6 +122,7 @@ function App() {
     setGameState((prev) => ({ ...prev, currentPosition: newGame.fen() }));
     setPly(getMaxPly());
     setExplanation(null);
+    setEvalInfo(null);
   };
   const flipBoard = () => setIsFlipped((f) => !f);
   const resetBoard = () => {
@@ -124,6 +135,7 @@ function App() {
     setEvalInfo(null);
     setExplanation(null);
     setPly(-1);
+    setIsAnalyzing(false);
   };
 
   // --- Helpers for ply navigation ---
@@ -147,6 +159,7 @@ function App() {
 
   // --- Analysis ---
   const analyzePosition = async (fen: string) => {
+    setIsAnalyzing(true);
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
@@ -159,12 +172,25 @@ function App() {
         depth: 20, // hardcoded for now
         bestLine: data.bestLine?.join(" ") || "",
       });
+      setIsAnalyzing(false);
       return data;
     } catch (error) {
+      setIsAnalyzing(false);
       console.error("Error analyzing position:", error);
       return null;
     }
   };
+
+  // --- Auto-analyze on ply change ---
+  useEffect(() => {
+    if (ply >= 0) {
+      const newGame = new Chess();
+      const history = getHistoryByPly(ply);
+      history.forEach((move) => newGame.move(move));
+      const fen = newGame.fen();
+      analyzePosition(fen);
+    }
+  }, [ply]);
 
   // --- Central Explain Button ---
   const explainCurrentMove = async () => {
@@ -251,6 +277,7 @@ function App() {
                       }));
                       setPly(idx * 2);
                       setExplanation(null);
+                      setEvalInfo(null);
                     }}
                   >
                     {move.white}
@@ -278,6 +305,7 @@ function App() {
                       }));
                       setPly(idx * 2 + 1);
                       setExplanation(null);
+                      setEvalInfo(null);
                     }}
                   >
                     {move.black}
@@ -297,7 +325,11 @@ function App() {
       <div className="text-center py-8">
         <h1 className="text-5xl font-extrabold mb-2">Analysis Board</h1>
         <p className="text-lg text-gray-200 max-w-2xl mx-auto">
-        Upload or paste your PGN files to get detailed move-by-move analysis and explanations.
+          Reproduce and analyze your games or the positions you want. Import
+          your game in PGN notation or set up a position from a FEN. Take
+          advantage of this online chess calculator and analysis board powered
+          by Stockfish and ChatGPT, offering detailed insights into your
+          positions and games.
         </p>
       </div>
       {/* Main Grid */}
@@ -389,17 +421,17 @@ function App() {
             </div>
             {/* Evaluation and Explain */}
             <div className="flex gap-2">
-              <div className="bg-blue-600 text-white font-bold text-2xl px-6 py-2 rounded flex items-center">
-                {evalInfo ? evalInfo.eval : "+0.00"}
+              <div className="bg-blue-600 text-white font-bold text-2xl px-6 py-2 rounded flex items-center min-w-[80px] min-h-[48px] justify-center">
+                {isAnalyzing ? (
+                  <span className="animate-pulse">...</span>
+                ) : evalInfo ? (
+                  evalInfo.eval
+                ) : (
+                  "..."
+                )}
               </div>
               <button
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold"
-                onClick={() => analyzePosition(game.fen())}
-              >
-                Analyze
-              </button>
-              <button
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-semibold"
+                className="bg-teal-400 hover:bg-teal-500 text-white px-4 py-2 rounded font-semibold"
                 onClick={explainCurrentMove}
                 disabled={isExplaining || ply < 0}
               >

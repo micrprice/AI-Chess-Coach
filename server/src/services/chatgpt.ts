@@ -15,7 +15,7 @@ export class ChatGPTService {
 
     try {
       const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
+        model: "gpt-4.1-nano-2025-04-14",
         messages: [
           {
             role: "system",
@@ -29,6 +29,9 @@ export class ChatGPTService {
         temperature: 0.7,
         max_tokens: 200
       });
+
+      // Log the full response for debugging
+      console.log('ChatGPT API response:', JSON.stringify(response, null, 2));
 
       return response.choices[0].message.content || 'No explanation available';
     } catch (error) {
