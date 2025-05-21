@@ -37,22 +37,6 @@ A full-stack web application that provides chess game analysis using Stockfish a
 - Stockfish integration via node-uci
 - OpenAI API integration for move explanations
 
-## Project Structure
-
-```
-.
-├── client/             # React frontend
-│   ├── src/
-│   │   ├── App.tsx    # Main application component
-│   │   └── types.ts   # TypeScript type definitions
-│   ├── public/
-│   └── package.json
-└── server/             # Node.js backend
-    ├── src/
-    │   ├── index.ts   # Express server setup
-    │   └── stockfish.ts # Stockfish integration
-    └── package.json
-```
 
 ## Setup
 
